@@ -10,4 +10,9 @@ def gini_impurity(feature,target):
             classes.append(feature[i])
     for i in range(len(classes)):
         sorted_feature.append([i for i, value in enumerate(feature) if value == feature[i]])
-        probabilities[i] = len(sorted_feature[i]) / len(feature)
+    for i in range(len(sorted_feature)):
+        class_probability = 0
+        for j in range(len(sorted_feature[i])):
+            if feature[sorted_feature[i][j]] == target[sorted_feature[i][j]]:
+                class_probability += 1
+        probabilities[i] = class_probability / len(sorted_feature[i])
