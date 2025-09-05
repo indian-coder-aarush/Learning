@@ -25,5 +25,3 @@ def gini_impurity(feature,target):
              probability.iloc[:least_impurity_key+1].index.tolist()]
     return gini_impurities[least_impurity_key] , split
 
-
-print(gini_impurity([1,4,1,4,1,4,1,4,1,1,1,1,2,2,2,2,2,2,2,2],[1,0,0,0,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1]))
