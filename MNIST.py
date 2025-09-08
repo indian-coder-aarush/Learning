@@ -5,12 +5,12 @@ import torch
 
 ((train_images, train_labels),(test_images,test_labels)) = mnist.load_data()
 
-train_vectors = torch.from_numpy(train_labels[:300]).long()
+train_vectors = torch.from_numpy(train_labels[:10000]).long()
 
-test_vectors = torch.from_numpy(test_labels[:20]).long()
+test_vectors = torch.from_numpy(test_labels[:200]).long()
 
-train_images = torch.from_numpy(train_images[:300]).float()
-test_images = torch.from_numpy(test_images[:20]).float()
+train_images = torch.from_numpy(train_images[:10000]/255).float()
+test_images = torch.from_numpy(test_images[:200]/255).float()
 
 class Model(nn.Module):
 
@@ -28,7 +28,7 @@ class Model(nn.Module):
         )
 
     def forward(self,x):
-        x = x.reshape(1,1,28,28)
+        x = x.reshape(-1,1,28,28)
         return self.cnn(x)
 
 cnn = Model()
@@ -37,27 +37,27 @@ loss_func =  nn.CrossEntropyLoss()
 
 optimizer = optim.Adam(cnn.parameters(), lr=0.001)
 
-for epoch in range(100):
+for epoch in range(30):
     total_loss = 0
     test_loss = 0
-    for i in range(len(train_images)):
+    for i in range(int(len(train_images)/100)):
         optimizer.zero_grad()
-        image = train_images[i]
-        label = train_vectors[i].unsqueeze(0)
+        image = train_images[100*i:100*i+100]
+        label = train_vectors[100*i:100*i+100]
         output = cnn(image)
         loss = loss_func(output, label)
         loss.backward()
         optimizer.step()
-        total_loss += loss.item()
-    for i in range(len(test_images)):
-        image = test_images[i]
-        label = test_vectors[i].unsqueeze(0)
+        total_loss += loss.item()/100
+    for i in range(int(len(test_images)/100)):
+        image = test_images[100*i:100*i+100]
+        label = test_vectors[100*i:100*i+100]
         output = cnn(image)
         loss = loss_func(output, label)
-        test_loss += loss.item()
+        test_loss += loss.item()/2
     print("At epoch", epoch)
     print('loss is ', total_loss)
     print('test loss is ', test_loss)
 
-output = cnn(test_images[1])
-print(output,test_labels[1])
+output = cnn(test_images)
+print(torch.argmax(nn.functional.softmax(output,dim = 0),dim = 1),test_labels)
