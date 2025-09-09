@@ -5,7 +5,7 @@ def gini_impurity(feature,target):
     df = pd.DataFrame({'feature':feature,'target':target})
     df.sort_values(by='feature',inplace = True)
     table = pd.crosstab(df['target'],df['feature'])
-    probability = table.loc[1]/table.sum()
+    probability = table.sum()/table.sum().sum()
     probability.sort_values(inplace = True)
     gini_impurities = {}
     for i in range(len(probability)-1):
@@ -20,8 +20,9 @@ def gini_impurity(feature,target):
         total_impurity = left_impurity*(left_total/(right_total+left_total)) + right_impurity*(right_total/
                                                                                                (right_total+left_total))
         gini_impurities[i+1] = total_impurity
-    least_impurity_key = min(gini_impurities)
+    least_impurity_key = min(gini_impurities,key=gini_impurities.get)
     split = [probability.iloc[least_impurity_key+1:].index.tolist(),
              probability.iloc[:least_impurity_key+1].index.tolist()]
     return gini_impurities[least_impurity_key] , split
 
+print(gini_impurity([1,1,1,1,1,1,2,2,2,2,2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4],[0,1,1,0,1,1,0,2,2,0,0,2,2,3,2,3,3,3,2,4,1,4,1,4,1,4]))
