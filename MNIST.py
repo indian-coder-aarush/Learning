@@ -7,10 +7,10 @@ import torch
 
 train_vectors = torch.from_numpy(train_labels[:10000]).long()
 
-test_vectors = torch.from_numpy(test_labels[:200]).long()
+test_vectors = torch.from_numpy(test_labels).long()
 
 train_images = torch.from_numpy(train_images[:10000]/255).float()
-test_images = torch.from_numpy(test_images[:200]/255).float()
+test_images = torch.from_numpy(test_images/255).float()
 
 class Model(nn.Module):
 
@@ -37,6 +37,8 @@ loss_func =  nn.CrossEntropyLoss()
 
 optimizer = optim.Adam(cnn.parameters(), lr=0.001)
 
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=30)
+
 for epoch in range(30):
     total_loss = 0
     test_loss = 0
@@ -49,15 +51,18 @@ for epoch in range(30):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()/100
-    for i in range(int(len(test_images)/100)):
-        image = test_images[100*i:100*i+100]
-        label = test_vectors[100*i:100*i+100]
+    for i in range(int(len(test_images)/10)):
+        image = test_images[10*i:10*i+10]
+        label = test_vectors[10*i:10*i+10]
         output = cnn(image)
         loss = loss_func(output, label)
-        test_loss += loss.item()/2
+        test_loss += loss.item()/140
     print("At epoch", epoch)
     print('loss is ', total_loss)
     print('test loss is ', test_loss)
+    scheduler.step()
 
 output = cnn(test_images)
-print(torch.argmax(nn.functional.softmax(output,dim = 0),dim = 1),test_labels)
+
+acc = (output.argmax(dim = 1) == test_vectors).float().mean()
+print(acc.item())
