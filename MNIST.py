@@ -5,12 +5,12 @@ import torch
 
 ((train_images, train_labels),(test_images,test_labels)) = mnist.load_data()
 
-train_vectors = torch.from_numpy(train_labels[:10000]).long()
+train_vectors = torch.from_numpy(train_labels).long()
 
 test_vectors = torch.from_numpy(test_labels).long()
 
-train_images = torch.from_numpy(train_images[:10000]/255).float()
-test_images = torch.from_numpy(test_images/255).float()
+train_images = torch.from_numpy(train_images).float()
+test_images = torch.from_numpy(test_images).float()
 
 class Model(nn.Module):
 
@@ -39,7 +39,7 @@ optimizer = optim.Adam(cnn.parameters(), lr=0.001)
 
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=30)
 
-for epoch in range(30):
+for epoch in range(100):
     total_loss = 0
     test_loss = 0
     for i in range(int(len(train_images)/100)):
@@ -50,19 +50,15 @@ for epoch in range(30):
         loss = loss_func(output, label)
         loss.backward()
         optimizer.step()
-        total_loss += loss.item()/100
-    for i in range(int(len(test_images)/10)):
-        image = test_images[10*i:10*i+10]
-        label = test_vectors[10*i:10*i+10]
-        output = cnn(image)
-        loss = loss_func(output, label)
-        test_loss += loss.item()/140
+        total_loss += loss.item()
     print("At epoch", epoch)
     print('loss is ', total_loss)
     print('test loss is ', test_loss)
     scheduler.step()
 
 output = cnn(test_images)
+
+torch.save(cnn.state_dict(), "model.pth")
 
 acc = (output.argmax(dim = 1) == test_vectors).float().mean()
 print(acc.item())
