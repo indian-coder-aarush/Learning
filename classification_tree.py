@@ -9,8 +9,6 @@ def gini_impurity(feature,target):
     calculate_probability_class = probability_vectors.idxmax()
     probability = ([table.loc[x, y] for x, y in zip(calculate_probability_class.tolist(),
                                                     calculate_probability_class.index.tolist())]/table.sum())
-    print(table,"\n",probability,"\n",table.loc[calculate_probability_class.tolist(),:].sum())
-    print(table.loc[['A','B'],[1,2]])
     probability.sort_values(inplace = True)
     gini_impurities = {}
     for i in range(len(probability)-1):
