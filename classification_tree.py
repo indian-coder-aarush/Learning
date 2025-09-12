@@ -28,4 +28,12 @@ def gini_impurity(feature,target):
              probability.iloc[:least_impurity_key+1].index.tolist()]
     return gini_impurities[least_impurity_key] , split
 
-print(gini_impurity([1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3],['A','A','A','B','B','B','B','C','C','C','C','C','C','C','C','C','C',]))
+class Node:
+
+    def __init__(self,feature,target,max_depth):
+        self.feature = feature
+        self.target = target
+        self.max_depth = max_depth
+        self.left_child = None
+        self.right_child = None
+
