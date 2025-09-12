@@ -30,10 +30,29 @@ def gini_impurity(feature,target):
 
 class Node:
 
-    def __init__(self,feature,target,max_depth):
+    def __init__(self,feature,target,max_depth,depth):
         self.feature = feature
         self.target = target
         self.max_depth = max_depth
+        self.depth = depth
         self.left_child = None
         self.right_child = None
 
+    def make_children(self):
+        if self.left_child is None and self.right_child is None and self.depth >= self.max_depth:
+            feature = pd.DataFrame(self.feature)
+            target = pd.DataFrame(self.target)
+            for i in range(len(self.feature)):
+                gini_impurities = []
+                splits = []
+                take_input_tuple = gini_impurity(self.feature[i],self.target)
+                gini_impurities.append(take_input_tuple[0])
+                splits.append(take_input_tuple[1])
+            if min(gini_impurities) < 0:
+                return
+            split_index = gini_impurities.index(min(gini_impurities))
+            split = splits[split_index]
+            self.left_child = Node(feature[feature[split_index] in split[0]],target[feature[split_index] in split[0]],
+                                   self.max_depth,self.depth+1)
+            self.right_child = Node(feature[feature[split_index] in split[1]],target[feature[split_index] in split[1]],
+                                   self.max_depth,self.depth+1)
