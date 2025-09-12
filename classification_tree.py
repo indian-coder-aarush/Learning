@@ -37,6 +37,8 @@ class Node:
         self.depth = depth
         self.left_child = None
         self.right_child = None
+        self.split = None
+        self.split_feature_index = None
 
     def make_children(self):
         if self.left_child is None and self.right_child is None and self.depth >= self.max_depth:
@@ -52,7 +54,22 @@ class Node:
                 return
             split_index = gini_impurities.index(min(gini_impurities))
             split = splits[split_index]
+            self.split = split
+            self.split_feature_index = split_index
             self.left_child = Node(feature[feature[split_index] in split[0]],target[feature[split_index] in split[0]],
                                    self.max_depth,self.depth+1)
             self.right_child = Node(feature[feature[split_index] in split[1]],target[feature[split_index] in split[1]],
                                    self.max_depth,self.depth+1)
+
+        def forward(features):
+            if self.left_child is None or self.right_child is None:
+                raise RuntimeError('You must call make_children first')
+            if self.depth == self.max_depth:
+                if features[self.split_feature_index] in self.split[0]:
+                    return features[self.split_feature_index]
+                elif features[self.split_feature_index] in self.split[1]:
+                    self.right_child.forward(features[self.split_feature_index])
+            if features[self.split_feature_index] in self.split[0]:
+                self.left_child.forward(features[self.split_feature_index])
+            elif features[self.split_feature_index] in self.split[1]:
+                self.right_child.forward(features[self.split_feature_index])
