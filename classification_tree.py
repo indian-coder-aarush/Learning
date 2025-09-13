@@ -74,5 +74,17 @@ class LeafNode:
     def __init__(self,feature,target):
         self.feature = feature
         self.target = target
+        self.predicted_label = None
 
+    def calculate_best_label(self):
+        gini_impurities = []
+        for i in range(len(self.feature)):
+            gini_impurity_label, split = gini_impurity(self.feature,self.target)
+            gini_impurities.append(gini_impurity_label)
+        self.predicted_label = gini_impurities.index(max(gini_impurities))
 
+    def forward(self,features):
+        if self.predicted_label is not None:
+            return self.predicted_label
+        else:
+            raise RuntimeError('You must call calculate_best_label first')
