@@ -45,7 +45,7 @@ class Node:
         target = pd.DataFrame(self.target)
         gini_impurities = []
         splits = []
-        for i in range(len(self.feature)):
+        for i in range(self.feature.shape[1]):
             take_input_tuple = gini_impurity(self.feature[i], self.target)
             gini_impurities.append(take_input_tuple[0])
             splits.append(take_input_tuple[1])
@@ -53,10 +53,12 @@ class Node:
         split = splits[split_index]
         if self.left_child is None and self.right_child is None and (self.depth == self.max_depth-1 or
                                                                      min(gini_impurities)==0):
-            self.left_child = LeafNode(target[feature[split_index] in split[0]])
-            self.right_child = LeafNode(target[feature[split_index] in split[1]])
+            mask_left = feature[split_index].isin(split[0])
+            mask_right = feature[split_index].isin(split[1])
+            self.left_child = LeafNode(target[mask_left])
+            self.right_child = LeafNode(target[mask_right])
             return
-        if self.left_child is None and self.right_child is None and self.depth > self.max_depth:
+        if self.left_child is None and self.right_child is None and self.depth < self.max_depth:
             self.split = split
             self.split_feature_index = split_index
             self.left_child = Node(feature[feature[split_index] in split[0]],target[feature[split_index] in split[0]],
@@ -70,9 +72,9 @@ class Node:
         if self.left_child is None or self.right_child is None:
             raise RuntimeError('You must call make_children first')
         if features[self.split_feature_index] in self.split[0]:
-            self.left_child.forward(features[self.split_feature_index])
-        elif features[self.split_feature_index] in self.split[1]:
-            self.right_child.forward(features[self.split_feature_index])
+            return self.left_child.forward(features)
+        if features[self.split_feature_index] in self.split[1]:
+            return self.right_child.forward(features)
 
 class LeafNode:
 
@@ -81,6 +83,7 @@ class LeafNode:
         self.predicted_label = None
 
     def calculate_best_label(self):
+        print(self.target)
         unique_elements, counts = np.unique(self.target, return_counts=True)
         highest_value_element_index = np.argmax(counts)
         self.predicted_label = unique_elements[highest_value_element_index]
@@ -106,3 +109,33 @@ class Tree:
             raise RuntimeError('You must call fit first')
         result = self.node.forward(features)
         return result
+
+data = {
+    0: ["Sunny", "Sunny", "Overcast", "Rain", "Rain", "Rain", "Overcast", "Sunny", "Sunny", "Rain", "Sunny", "Overcast", "Overcast", "Rain"],
+    1: ["Hot", "Hot", "Hot", "Mild", "Cool", "Cool", "Cool", "Mild", "Cool", "Mild", "Mild", "Mild", "Hot", "Mild"],
+    2: ["High", "High", "High", "High", "Normal", "Normal", "Normal", "High", "Normal", "Normal", "Normal", "High", "Normal", "High"],
+    3: ["Weak", "Strong", "Weak", "Weak", "Weak", "Strong", "Strong", "Weak", "Weak", "Weak", "Strong", "Strong", "Weak", "Strong"]
+}
+
+# Target
+target = ["No", "No", "Yes", "Yes", "Yes", "No", "Yes", "No", "Yes", "Yes", "Yes", "Yes", "Yes", "No"]
+
+# Convert to DataFrame
+X = pd.DataFrame(data)
+y = pd.Series(target, name="Play")
+
+tree = Tree(max_depth=3)
+tree.fit(X, y)
+
+# Call calculate_best_label for all leaves after fitting
+def set_labels(node):
+    if isinstance(node, LeafNode):
+        node.calculate_best_label()
+    else:
+        set_labels(node.left_child)
+        set_labels(node.right_child)
+
+set_labels(tree.node)
+
+print(tree.predict(X.iloc[0]))  # prediction for first row
+print(tree.predict(X.iloc[5]))
