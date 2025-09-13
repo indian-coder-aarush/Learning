@@ -99,4 +99,10 @@ class Tree:
 
     def fit(self,features,target):
         self.node = Node(features,target,self.max_depth,0)
-        Node.make_children()
+        self.node.make_children()
+
+    def predict(self,features):
+        if self.node is None:
+            raise RuntimeError('You must call fit first')
+        result = self.node.forward(features)
+        return result
