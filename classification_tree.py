@@ -41,7 +41,7 @@ class Node:
         self.split_feature_index = None
 
     def make_children(self):
-        if self.left_child is None and self.right_child is None and self.depth >= self.max_depth:
+        if self.left_child is None and self.right_child is None and self.depth > self.max_depth:
             feature = pd.DataFrame(self.feature)
             target = pd.DataFrame(self.target)
             for i in range(len(self.feature)):
@@ -64,12 +64,15 @@ class Node:
         def forward(features):
             if self.left_child is None or self.right_child is None:
                 raise RuntimeError('You must call make_children first')
-            if self.depth == self.max_depth:
-                if features[self.split_feature_index] in self.split[0]:
-                    return features[self.split_feature_index]
-                elif features[self.split_feature_index] in self.split[1]:
-                    self.right_child.forward(features[self.split_feature_index])
             if features[self.split_feature_index] in self.split[0]:
                 self.left_child.forward(features[self.split_feature_index])
             elif features[self.split_feature_index] in self.split[1]:
                 self.right_child.forward(features[self.split_feature_index])
+
+class LeafNode:
+
+    def __init__(self,feature,target):
+        self.feature = feature
+        self.target = target
+
+
