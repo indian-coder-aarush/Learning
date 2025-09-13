@@ -41,19 +41,22 @@ class Node:
         self.split_feature_index = None
 
     def make_children(self):
+        feature = pd.DataFrame(self.feature)
+        target = pd.DataFrame(self.target)
+        gini_impurities = []
+        splits = []
+        for i in range(len(self.feature)):
+            take_input_tuple = gini_impurity(self.feature[i], self.target)
+            gini_impurities.append(take_input_tuple[0])
+            splits.append(take_input_tuple[1])
+        split_index = gini_impurities.index(min(gini_impurities))
+        split = splits[split_index]
+        if self.left_child is None and self.right_child is None and (self.depth == self.max_depth-1 or
+                                                                     min(gini_impurities)==0):
+            self.left_child = LeafNode(target[feature[split_index] in split[0]])
+            self.right_child = LeafNode(target[feature[split_index] in split[1]])
+            return
         if self.left_child is None and self.right_child is None and self.depth > self.max_depth:
-            feature = pd.DataFrame(self.feature)
-            target = pd.DataFrame(self.target)
-            for i in range(len(self.feature)):
-                gini_impurities = []
-                splits = []
-                take_input_tuple = gini_impurity(self.feature[i],self.target)
-                gini_impurities.append(take_input_tuple[0])
-                splits.append(take_input_tuple[1])
-            if min(gini_impurities) < 0:
-                return
-            split_index = gini_impurities.index(min(gini_impurities))
-            split = splits[split_index]
             self.split = split
             self.split_feature_index = split_index
             self.left_child = Node(feature[feature[split_index] in split[0]],target[feature[split_index] in split[0]],
@@ -73,17 +76,14 @@ class Node:
 
 class LeafNode:
 
-    def __init__(self,feature,target):
-        self.feature = feature
+    def __init__(self,target):
         self.target = target
         self.predicted_label = None
 
     def calculate_best_label(self):
-        gini_impurities = []
-        for i in range(len(self.feature)):
-            gini_impurity_label, split = gini_impurity(self.feature,self.target)
-            gini_impurities.append(gini_impurity_label)
-        self.predicted_label = gini_impurities.index(max(gini_impurities))
+        unique_elements, counts = np.unique(self.target, return_counts=True)
+        highest_value_element_index = np.argmax(counts)
+        self.predicted_label = unique_elements[highest_value_element_index]
 
     def forward(self,features):
         if self.predicted_label is not None:
