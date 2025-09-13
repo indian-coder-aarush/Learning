@@ -54,24 +54,18 @@ class Node:
         split = splits[split_index]
         self.split = split
         self.split_feature_index = split_index
+        mask_left = feature[split_index].isin(split[0])
+        mask_right = feature[split_index].isin(split[1])
+        if mask_left.sum() == 0 or mask_right.sum() == 0:
+            self.left_child = LeafNode(self.target)
+            self.right_child = LeafNode(self.target)
+            return
         if self.left_child is None and self.right_child is None and (self.depth == self.max_depth-1 or
                                                                      min(gini_impurities)==0):
-            mask_left = feature[split_index].isin(split[0])
-            mask_right = feature[split_index].isin(split[1])
-            if mask_left.sum() == 0 or mask_right.sum() == 0:
-                self.left_child = LeafNode(self.target)
-                self.right_child = LeafNode(self.target)
-                return
             self.left_child = LeafNode(target[mask_left])
             self.right_child = LeafNode(target[mask_right])
             return
         if self.left_child is None and self.right_child is None and self.depth < self.max_depth:
-            mask_left = feature[split_index].isin(split[0])
-            mask_right = feature[split_index].isin(split[1])
-            if mask_left.sum() == 0 or mask_right.sum() == 0:
-                self.left_child = LeafNode(self.target)
-                self.right_child = LeafNode(self.target)
-                return
             self.left_child = Node(feature[mask_left], target[mask_left],
                                    self.max_depth, self.depth + 1)
             self.right_child = Node(feature[mask_right], target[mask_right],
