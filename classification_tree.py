@@ -26,6 +26,7 @@ def gini_impurity(feature,target):
     least_impurity_key = min(gini_impurities)
     split = [probability.iloc[least_impurity_key+1:].index.tolist(),
              probability.iloc[:least_impurity_key+1].index.tolist()]
+    print(gini_impurities[least_impurity_key] , split)
     return gini_impurities[least_impurity_key] , split
 
 class Node:
@@ -51,20 +52,30 @@ class Node:
             splits.append(take_input_tuple[1])
         split_index = gini_impurities.index(min(gini_impurities))
         split = splits[split_index]
+        self.split = split
+        self.split_feature_index = split_index
         if self.left_child is None and self.right_child is None and (self.depth == self.max_depth-1 or
                                                                      min(gini_impurities)==0):
             mask_left = feature[split_index].isin(split[0])
             mask_right = feature[split_index].isin(split[1])
+            if mask_left.sum() == 0 or mask_right.sum() == 0:
+                self.left_child = LeafNode(self.target)
+                self.right_child = LeafNode(self.target)
+                return
             self.left_child = LeafNode(target[mask_left])
             self.right_child = LeafNode(target[mask_right])
             return
         if self.left_child is None and self.right_child is None and self.depth < self.max_depth:
-            self.split = split
-            self.split_feature_index = split_index
-            self.left_child = Node(feature[feature[split_index] in split[0]],target[feature[split_index] in split[0]],
-                                   self.max_depth,self.depth+1)
-            self.right_child = Node(feature[feature[split_index] in split[1]],target[feature[split_index] in split[1]],
-                                   self.max_depth,self.depth+1)
+            mask_left = feature[split_index].isin(split[0])
+            mask_right = feature[split_index].isin(split[1])
+            if mask_left.sum() == 0 or mask_right.sum() == 0:
+                self.left_child = LeafNode(self.target)
+                self.right_child = LeafNode(self.target)
+                return
+            self.left_child = Node(feature[mask_left], target[mask_left],
+                                   self.max_depth, self.depth + 1)
+            self.right_child = Node(feature[mask_right], target[mask_right],
+                                    self.max_depth, self.depth + 1)
             self.left_child.make_children()
             self.right_child.make_children()
 
@@ -83,7 +94,6 @@ class LeafNode:
         self.predicted_label = None
 
     def calculate_best_label(self):
-        print(self.target)
         unique_elements, counts = np.unique(self.target, return_counts=True)
         highest_value_element_index = np.argmax(counts)
         self.predicted_label = unique_elements[highest_value_element_index]
@@ -124,7 +134,7 @@ target = ["No", "No", "Yes", "Yes", "Yes", "No", "Yes", "No", "Yes", "Yes", "Yes
 X = pd.DataFrame(data)
 y = pd.Series(target, name="Play")
 
-tree = Tree(max_depth=3)
+tree = Tree(max_depth=100)
 tree.fit(X, y)
 
 # Call calculate_best_label for all leaves after fitting
@@ -137,5 +147,5 @@ def set_labels(node):
 
 set_labels(tree.node)
 
-print(tree.predict(X.iloc[0]))  # prediction for first row
-print(tree.predict(X.iloc[5]))
+for i in range(14):
+    print(tree.predict(X.loc[i]))
