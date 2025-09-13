@@ -60,6 +60,8 @@ class Node:
                                    self.max_depth,self.depth+1)
             self.right_child = Node(feature[feature[split_index] in split[1]],target[feature[split_index] in split[1]],
                                    self.max_depth,self.depth+1)
+            self.left_child.make_children()
+            self.right_child.make_children()
 
         def forward(features):
             if self.left_child is None or self.right_child is None:
@@ -88,3 +90,13 @@ class LeafNode:
             return self.predicted_label
         else:
             raise RuntimeError('You must call calculate_best_label first')
+
+class Tree:
+
+    def __init__(self,max_depth):
+        self.max_depth = max_depth
+        self.node = None
+
+    def fit(self,features,target):
+        self.node = Node(features,target,self.max_depth,0)
+        Node.make_children()
