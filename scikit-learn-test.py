@@ -1,4 +1,4 @@
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, export_text
 from sklearn.preprocessing import OrdinalEncoder
 import pandas as pd
 
@@ -16,12 +16,15 @@ X = pd.DataFrame(data)
 y = pd.Series(target)
 
 # Encode categorical features
-encoder = OrdinalEncoder()
-X_encoded = encoder.fit_transform(X)
+#encoder = OrdinalEncoder()
+#X_encoded = encoder.fit_transform(X)
 
 # Train scikit-learn decision tree
-clf = DecisionTreeClassifier(criterion='gini', max_depth=3, random_state=42)
-clf.fit(X_encoded, y)
+clf = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=42)
+clf.fit(X, y)
+
+tree_rules = export_text(clf, feature_names = X.columns)
+print(tree_rules)
 
 # Predict on all rows
 predictions = clf.predict(X_encoded)
