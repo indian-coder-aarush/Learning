@@ -16,12 +16,12 @@ X = pd.DataFrame(data)
 y = pd.Series(target)
 
 # Encode categorical features
-#encoder = OrdinalEncoder()
-#X_encoded = encoder.fit_transform(X)
+encoder = OrdinalEncoder()
+X_encoded = encoder.fit_transform(X)
 
 # Train scikit-learn decision tree
-clf = DecisionTreeClassifier(criterion='entropy', max_depth=4, random_state=42)
-clf.fit(X, y)
+clf = DecisionTreeClassifier(criterion='entropy', max_depth=100, random_state=42)
+clf.fit(X_encoded, y)
 
 tree_rules = export_text(clf, feature_names = X.columns)
 print(tree_rules)
