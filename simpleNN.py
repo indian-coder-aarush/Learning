@@ -45,8 +45,8 @@ from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_sc
 for i in range(100):
     y = torch.tensor(y)
     optimizer.zero_grad()
-    y_pred = model.forward(X)
-    loss = criterion(y_pred, y)
+    y_pred = model.forward(X[:1000])
+    loss = criterion(y_pred, y[:1000])
     print(loss.item())
     loss.backward()
     optimizer.step()
@@ -54,14 +54,17 @@ for i in range(100):
     y_pred = y_pred.numpy()
     y = y.numpy()
 
-    prec = precision_score(y, y_pred)
-    rec = recall_score(y, y_pred)
-    f1 = f1_score(y, y_pred)
-    acc = accuracy_score(y, y_pred)
+    prec = precision_score(y[:1000], y_pred)
+    rec = recall_score(y[:1000], y_pred)
+    f1 = f1_score(y[:1000], y_pred)
+    acc = accuracy_score(y[:1000], y_pred)
 
     print('accuracy:', acc)
     print('precision:', prec)
     print('recall:', rec)
     print('f1:', f1)
 
-y_pred = model.forward(X)
+y_pred = model.forward(X[1000:1100])
+y_pred = torch.argmax(y_pred, dim=1).numpy()
+
+print(f1_score(y[1000:1100], y_pred))
